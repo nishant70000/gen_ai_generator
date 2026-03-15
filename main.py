@@ -7,18 +7,28 @@ import io
 API_URL = "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-2"
 
 headers = {
-    "Authorization": "Bearer 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"
+    "Authorization": "Bearer hf_YOUR_NEW_TOKEN"
 }
 
 def generate_image(prompt):
     payload = {"inputs": prompt}
-    response = requests.post(API_URL, headers=headers, json=payload)
 
-    # Check if response is an image
-    if response.headers.get("content-type", "").startswith("image"):
-        return response.content
-    else:
+    try:
+        response = requests.post(API_URL, headers=headers, json=payload, timeout=120)
+
+        # If request failed
+        if response.status_code != 200:
+            return None, response.text
+
+        # If response is an image
+        if response.headers.get("content-type", "").startswith("image"):
+            return response.content
+
+        # Otherwise return error text
         return None, response.text
+
+    except Exception as e:
+        return None, str(e)
 
 
 # Streamlit UI
@@ -37,17 +47,18 @@ if st.button("Generate Image"):
     else:
         with st.spinner("Generating image..."):
 
-            result = generate_image(prompt)
+            image_bytes, error = generate_image(prompt)
 
-            if isinstance(result, tuple):
-                st.error("API Error: " + result[1])
+            if image_bytes is None:
+                st.error("API Error: " + error)
+
             else:
-                image = Image.open(io.BytesIO(result))
+                image = Image.open(io.BytesIO(image_bytes))
                 st.image(image, caption="Generated Image", use_column_width=True)
 
                 st.download_button(
                     label="Download Image",
-                    data=result,
+                    data=image_bytes,
                     file_name="generated_image.png",
                     mime="image/png"
                 )
