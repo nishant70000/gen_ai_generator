@@ -5,14 +5,21 @@ import io
 
 # Hugging Face API
 API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2"
+
 headers = {
-    "Authorization": "Bearer YOUR_HF_API_KEY"
+    "Authorization": "Bearer hf_your_actual_token_here"
 }
 
 def generate_image(prompt):
     payload = {"inputs": prompt}
     response = requests.post(API_URL, headers=headers, json=payload)
-    return response.content
+
+    # Check if response is an image
+    if response.headers.get("content-type", "").startswith("image"):
+        return response.content
+    else:
+        return None, response.text
+
 
 # Streamlit UI
 st.set_page_config(page_title="AI Image Generator", page_icon="🎨")
@@ -26,18 +33,21 @@ if st.button("Generate Image"):
 
     if prompt.strip() == "":
         st.warning("Please enter a prompt")
+
     else:
         with st.spinner("Generating image..."):
 
-            image_bytes = generate_image(prompt)
+            result = generate_image(prompt)
 
-            image = Image.open(io.BytesIO(image_bytes))
+            if isinstance(result, tuple):
+                st.error("API Error: " + result[1])
+            else:
+                image = Image.open(io.BytesIO(result))
+                st.image(image, caption="Generated Image", use_column_width=True)
 
-            st.image(image, caption="Generated Image", use_column_width=True)
-
-            st.download_button(
-                label="Download Image",
-                data=image_bytes,
-                file_name="generated_image.png",
-                mime="image/png"
-            )
+                st.download_button(
+                    label="Download Image",
+                    data=result,
+                    file_name="generated_image.png",
+                    mime="image/png"
+                )
