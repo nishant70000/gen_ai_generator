@@ -7,7 +7,7 @@ import io
 API_URL = "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-2"
 
 headers = {
-    "Authorization": "Bearer hf_your_token_here"
+    "Authorization": "Bearer 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"
 }
 
 def generate_image(prompt):
