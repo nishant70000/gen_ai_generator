@@ -4,7 +4,7 @@ from PIL import Image
 import io
 
 # Hugging Face API
- API_URL = "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-2"
+API_URL = "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-2"
 
 headers = {
     "Authorization": "Bearer hf_your_token_here"
