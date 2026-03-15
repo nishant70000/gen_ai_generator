@@ -2,19 +2,28 @@ import streamlit as st
 import requests
 from PIL import Image
 import io
+import os
 
 # Hugging Face API
-API_URL = "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-2"
+API_URL = "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-base-1.0"
+
+# Read token from Hugging Face Space secret
+HF_TOKEN = os.getenv("HF_TOKEN")
 
 headers = {
-    "Authorization": "Bearer hf_YOUR_NEW_TOKEN"
+    "Authorization": f"Bearer {HF_TOKEN}"
 }
 
 def generate_image(prompt):
     payload = {"inputs": prompt}
 
     try:
-        response = requests.post(API_URL, headers=headers, json=payload, timeout=120)
+        response = requests.post(
+            API_URL,
+            headers=headers,
+            json=payload,
+            timeout=120
+        )
 
         # If request failed
         if response.status_code != 200:
@@ -22,9 +31,8 @@ def generate_image(prompt):
 
         # If response is an image
         if response.headers.get("content-type", "").startswith("image"):
-            return response.content
+            return response.content, None   # FIXED
 
-        # Otherwise return error text
         return None, response.text
 
     except Exception as e:
